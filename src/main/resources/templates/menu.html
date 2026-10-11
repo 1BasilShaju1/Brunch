@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Brunch - Menu</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<div class="navbar">
+    <a class="logo" th:href="@{/}">Brunch</a>
+    <div class="links">
+        <a th:href="@{/cart}">Cart <span th:text="${session.cart != null ? '(' + session.cart.size() + ')' : ''}"></span></a>
+        <a th:href="@{/admin}">Admin</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1 th:text="${restaurant.name}">Restaurant name</h1>
+    <p class="muted" th:text="${restaurant.address}">Address</p>
+
+    <p th:if="${menu.isEmpty()}">This restaurant has no food items yet.</p>
+
+    <!-- One card for each food item -->
+    <div class="card" th:each="food : ${menu}">
+        <div>
+            <strong th:text="${food.name}">Food name</strong><br>
+            <span class="price">₹<span th:text="${#numbers.formatDecimal(food.price, 1, 2)}">0.00</span></span>
+        </div>
+        <form th:action="@{/cart/add}" method="post">
+            <input type="hidden" name="foodItemId" th:value="${food.id}">
+            <button type="submit">Add to Cart</button>
+        </form>
+    </div>
+
+    <p><a th:href="@{/}">&larr; Back to restaurants</a></p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Brunch - Cart</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<div class="navbar">
+    <a class="logo" th:href="@{/}">Brunch</a>
+    <div class="links">
+        <a th:href="@{/cart}">Cart <span th:text="${session.cart != null ? '(' + session.cart.size() + ')' : ''}"></span></a>
+        <a th:href="@{/admin}">Admin</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Your Cart</h1>
+
+    <!-- Shown when the cart is empty -->
+    <div th:if="${cart.isEmpty()}">
+        <p>Your cart is empty.</p>
+        <a class="btn" th:href="@{/}">Browse restaurants</a>
+    </div>
+
+    <!-- Shown when the cart has items -->
+    <div th:unless="${cart.isEmpty()}">
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+            </tr>
+            <tr th:each="item : ${cart}">
+                <td th:text="${item.name}">Name</td>
+                <td>₹<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</span></td>
+                <td th:text="${item.quantity}">1</td>
+                <td>₹<span th:text="${#numbers.formatDecimal(item.lineTotal, 1, 2)}">0.00</span></td>
+            </tr>
+        </table>
+
+        <div class="total">Total: ₹<span th:text="${#numbers.formatDecimal(total, 1, 2)}">0.00</span></div>
+
+        <form th:action="@{/cart/clear}" method="post">
+            <button type="submit" class="grey">Empty Cart</button>
+        </form>
+
+        <h2>Delivery details</h2>
+
+        <div class="error" th:if="${error}">Please fill in your name, phone number and address.</div>
+
+        <div class="card block">
+            <form th:action="@{/order/place}" method="post">
+                <label for="customerName">Name</label>
+                <input type="text" id="customerName" name="customerName" required>
+
+                <label for="phone">Phone number</label>
+                <input type="tel" id="phone" name="phone" required>
+
+                <label for="address">Delivery address</label>
+                <input type="text" id="address" name="address" required>
+
+                <button type="submit">Place Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

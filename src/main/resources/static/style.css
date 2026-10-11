@@ -1,0 +1,166 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #fff8f0;
+    color: #333;
+    margin: 0;
+}
+
+/* Top bar */
+.navbar {
+    background: #ff6b35;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.navbar .links a {
+    color: white;
+    margin-left: 18px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Page content */
+.container {
+    max-width: 800px;
+    margin: 24px auto;
+    padding: 0 16px;
+}
+
+h1, h2 {
+    color: #c4421a;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card.block {
+    display: block;
+}
+
+.muted {
+    color: #777;
+    font-size: 14px;
+}
+
+.price {
+    font-weight: bold;
+    color: #c4421a;
+}
+
+/* Buttons and links that look like buttons */
+.btn, button {
+    background: #ff6b35;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn:hover, button:hover {
+    background: #e55a28;
+}
+
+button.grey {
+    background: #888;
+}
+
+/* Forms */
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    padding: 9px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+form button {
+    margin-top: 14px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+th {
+    background: #ffe3d6;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: right;
+    margin: 14px 0;
+}
+
+.error {
+    background: #ffd9d9;
+    color: #a30000;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.status {
+    display: inline-block;
+    background: #ffe3d6;
+    color: #c4421a;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.inline-form {
+    display: flex;
+    gap: 6px;
+}
+
+.inline-form select {
+    margin-top: 0;
+}
+
+.inline-form button {
+    margin-top: 0;
+}

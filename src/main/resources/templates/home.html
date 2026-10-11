@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Brunch - Restaurants</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<div class="navbar">
+    <a class="logo" th:href="@{/}">Brunch</a>
+    <div class="links">
+        <a th:href="@{/cart}">Cart <span th:text="${session.cart != null ? '(' + session.cart.size() + ')' : ''}"></span></a>
+        <a th:href="@{/admin}">Admin</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Restaurants</h1>
+
+    <p th:if="${restaurants.isEmpty()}">No restaurants yet.</p>
+
+    <!-- One card for each restaurant -->
+    <div class="card" th:each="r : ${restaurants}">
+        <div>
+            <h2 th:text="${r.name}">Restaurant name</h2>
+            <span class="muted" th:text="${r.address}">Address</span>
+        </div>
+        <a class="btn" th:href="@{/restaurant/{id}(id=${r.id})}">View Menu</a>
+    </div>
+</div>
+
+</body>
+</html>

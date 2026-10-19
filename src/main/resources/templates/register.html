@@ -6,52 +6,107 @@
     <title>Register - Brunch</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="auth-body">
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="auth-wrapper">
-    <div class="card auth-card">
-        <h2 class="auth-title">Create an Account</h2>
-        <p class="auth-sub">Register as a customer to order food instantly</p>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-icon">🍳</span>
+            <h2>Create Your Account</h2>
+            <p>Join Brunch to order or list delicious food</p>
+        </div>
 
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <form th:action="@{/register}" th:object="${registerForm}" method="post">
+        <form th:action="@{/register}" th:object="${registerForm}" method="post" class="auth-form" id="registerForm">
+            <!-- Role Selection -->
+            <div class="form-group">
+                <label>I want to join as:</label>
+                <div class="role-selector">
+                    <label class="role-option">
+                        <input type="radio" th:field="*{role}" value="CUSTOMER" id="roleCustomer" checked onchange="toggleRestaurantFields()"/>
+                        <span class="role-box">
+                            <span class="role-icon">👤</span>
+                            <strong>Customer</strong>
+                            <small>Order delicious food</small>
+                        </span>
+                    </label>
+                    <label class="role-option">
+                        <input type="radio" th:field="*{role}" value="RESTAURANT" id="roleRestaurant" onchange="toggleRestaurantFields()"/>
+                        <span class="role-box">
+                            <span class="role-icon">🏪</span>
+                            <strong>Restaurant</strong>
+                            <small>List menu &amp; accept orders</small>
+                        </span>
+                    </label>
+                </div>
+                <span class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
+            </div>
+
+            <!-- Common Fields -->
             <div class="form-group">
                 <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" th:field="*{fullName}" class="form-control" placeholder="e.g. John Doe"/>
+                <input type="text" id="fullName" th:field="*{fullName}" placeholder="e.g. John Doe" class="form-control" required/>
                 <span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
             </div>
 
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="john@example.com"/>
+                <input type="email" id="email" th:field="*{email}" placeholder="e.g. john@example.com" class="form-control" required/>
                 <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
             </div>
 
             <div class="form-group">
                 <label for="phone">Phone Number</label>
-                <input type="text" id="phone" th:field="*{phone}" class="form-control" placeholder="10-digit mobile number"/>
+                <input type="tel" id="phone" th:field="*{phone}" placeholder="e.g. 9876543210" class="form-control" required/>
                 <span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="At least 6 characters"/>
-                    <button type="button" class="btn-toggle-pw" onclick="togglePasswordVisibility('password')">Show</button>
-                </div>
+                <input type="password" id="password" th:field="*{password}" placeholder="At least 6 characters" class="form-control" required/>
                 <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Register</button>
+            <!-- Restaurant-specific Fields -->
+            <div id="restaurantFields" class="restaurant-fields-box" style="display: none;">
+                <h4 class="sub-heading">Restaurant Information</h4>
+                <div class="form-group">
+                    <label for="restaurantName">Restaurant Name</label>
+                    <input type="text" id="restaurantName" th:field="*{restaurantName}" placeholder="e.g. The Pizza Bistro" class="form-control"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" th:field="*{city}" placeholder="e.g. Bangalore, Mumbai" class="form-control"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Restaurant Address</label>
+                    <input type="text" id="address" th:field="*{address}" placeholder="e.g. 42 Main Street, Indiranagar" class="form-control"/>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
         </form>
 
-        <p class="auth-footer">Already have an account? <a th:href="@{/login}">Log in here</a></p>
+        <div class="auth-footer">
+            <p>Already have an account? <a th:href="@{/login}">Log in here</a></p>
+        </div>
     </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
-<script th:src="@{/js/main.js}"></script>
+
+<script>
+    function toggleRestaurantFields() {
+        const isRestaurant = document.getElementById('roleRestaurant').checked;
+        const fields = document.getElementById('restaurantFields');
+        fields.style.display = isRestaurant ? 'block' : 'none';
+    }
+    // Run on load in case of re-render with errors
+    document.addEventListener('DOMContentLoaded', toggleRestaurantFields);
+</script>
 </body>
 </html>

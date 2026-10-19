@@ -1,35 +1,80 @@
 package com.brunch.service;
 
-import com.brunch.entity.Cart;
-import com.brunch.entity.CartItem;
-import com.brunch.entity.MenuItem;
-import com.brunch.entity.User;
-import com.brunch.repository.CartItemRepository;
-import com.brunch.repository.CartRepository;
+import com.brunch.dto.CartItemView;
+import com.brunch.dto.CartView;
+import com.brunch.model.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CartService {
 
-    private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
+    private final FileStorageService fileStorageService;
     private final MenuService menuService;
+    private final RestaurantService restaurantService;
 
-    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, MenuService menuService) {
-        this.cartRepository = cartRepository;
-        this.cartItemRepository = cartItemRepository;
+    public CartService(FileStorageService fileStorageService, MenuService menuService, RestaurantService restaurantService) {
+        this.fileStorageService = fileStorageService;
         this.menuService = menuService;
+        this.restaurantService = restaurantService;
     }
 
     public Cart getOrCreateCart(User customer) {
-        return cartRepository.findByCustomer(customer)
-                .orElseGet(() -> cartRepository.save(new Cart(customer)));
+        if (customer == null || customer.getId() == null) {
+            throw new IllegalArgumentException("Customer must not be null");
+        }
+        return fileStorageService.findCartByCustomerId(customer.getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setCustomerId(customer.getId());
+                    return fileStorageService.saveCart(newCart);
+                });
     }
 
-    @Transactional
+    public CartView getCartView(User customer) {
+        Cart cart = getOrCreateCart(customer);
+        List<CartItem> cartItems = fileStorageService.findCartItemsByCartId(cart.getId());
+
+        CartView cartView = new CartView();
+        cartView.setId(cart.getId());
+        cartView.setCustomerId(customer.getId());
+
+        List<CartItemView> itemViews = new ArrayList<>();
+        double subtotal = 0.0;
+        Long restaurantId = null;
+
+        for (CartItem ci : cartItems) {
+            Optional<MenuItem> itemOpt = fileStorageService.findMenuItemById(ci.getMenuItemId());
+            if (itemOpt.isPresent()) {
+                MenuItem item = itemOpt.get();
+                CartItemView civ = new CartItemView(ci.getId(), item, ci.getQuantity());
+                itemViews.add(civ);
+                subtotal += civ.getSubtotal();
+                if (restaurantId == null && item.getRestaurantId() != null) {
+                    restaurantId = item.getRestaurantId();
+                }
+            }
+        }
+
+        cartView.setItems(itemViews);
+        cartView.setSubtotal(subtotal);
+        cartView.setRestaurantId(restaurantId);
+
+        if (restaurantId != null) {
+            restaurantService.getProfileById(restaurantId)
+                    .ifPresent(r -> cartView.setRestaurantName(r.getRestaurantName()));
+        }
+
+        double deliveryFee = (subtotal > 0) ? 30.0 : 0.0;
+        cartView.setDeliveryFee(deliveryFee);
+        cartView.setTotal(subtotal > 0 ? (subtotal + deliveryFee) : 0.0);
+
+        return cartView;
+    }
+
     public void addItemToCart(User customer, Long menuItemId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
@@ -40,55 +85,69 @@ public class CartService {
         }
 
         Cart cart = getOrCreateCart(customer);
-        Optional<CartItem> existingItem = cartItemRepository.findByCartAndMenuItem(cart, menuItem);
+        List<CartItem> currentItems = fileStorageService.findCartItemsByCartId(cart.getId());
 
-        if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
+        // Check if items from a different restaurant already exist in the cart
+        for (CartItem ci : currentItems) {
+            Optional<MenuItem> existingItemOpt = fileStorageService.findMenuItemById(ci.getMenuItemId());
+            if (existingItemOpt.isPresent()) {
+                MenuItem existingItem = existingItemOpt.get();
+                if (existingItem.getRestaurantId() != null && menuItem.getRestaurantId() != null
+                        && !existingItem.getRestaurantId().equals(menuItem.getRestaurantId())) {
+                    throw new IllegalStateException("Your cart contains items from another restaurant. Please clear your cart first before ordering from a new restaurant.");
+                }
+            }
+        }
+
+        Optional<CartItem> existingCartItem = fileStorageService.findCartItemByCartIdAndMenuItemId(cart.getId(), menuItemId);
+        if (existingCartItem.isPresent()) {
+            CartItem item = existingCartItem.get();
             item.setQuantity(item.getQuantity() + quantity);
-            cartItemRepository.save(item);
+            fileStorageService.saveCartItem(item);
         } else {
-            CartItem newItem = new CartItem(cart, menuItem, quantity);
-            cartItemRepository.save(newItem);
+            CartItem newItem = new CartItem();
+            newItem.setCartId(cart.getId());
+            newItem.setMenuItemId(menuItemId);
+            newItem.setQuantity(quantity);
+            fileStorageService.saveCartItem(newItem);
         }
     }
 
-    @Transactional
     public void updateCartItemQuantity(User customer, Long cartItemId, int quantity) {
-        CartItem cartItem = cartItemRepository.findById(cartItemId)
+        CartItem cartItem = fileStorageService.findCartItemById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
 
-        if (!cartItem.getCart().getCustomer().getId().equals(customer.getId())) {
+        Cart cart = fileStorageService.findCartById(cartItem.getCartId())
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+
+        if (!customer.getId().equals(cart.getCustomerId())) {
             throw new SecurityException("Unauthorized cart modification");
         }
 
         if (quantity <= 0) {
-            cartItemRepository.delete(cartItem);
+            fileStorageService.deleteCartItem(cartItemId);
         } else {
             cartItem.setQuantity(quantity);
-            cartItemRepository.save(cartItem);
+            fileStorageService.saveCartItem(cartItem);
         }
     }
 
-    @Transactional
     public void removeCartItem(User customer, Long cartItemId) {
-        CartItem cartItem = cartItemRepository.findById(cartItemId)
+        CartItem cartItem = fileStorageService.findCartItemById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
 
-        if (!cartItem.getCart().getCustomer().getId().equals(customer.getId())) {
+        Cart cart = fileStorageService.findCartById(cartItem.getCartId())
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+
+        if (!customer.getId().equals(cart.getCustomerId())) {
             throw new SecurityException("Unauthorized cart modification");
         }
-        cartItemRepository.delete(cartItem);
+
+        fileStorageService.deleteCartItem(cartItemId);
     }
 
-    @Transactional
-    public void clearCart(Cart cart) {
-        cart.getItems().clear();
-        cartRepository.save(cart);
-    }
-
-    public Double calculateCartTotal(Cart cart) {
-        return cart.getItems().stream()
-                .mapToDouble(CartItem::getSubtotal)
-                .sum();
+    public void clearCart(User customer) {
+        Cart cart = getOrCreateCart(customer);
+        fileStorageService.deleteCartItemsByCartId(cart.getId());
     }
 }

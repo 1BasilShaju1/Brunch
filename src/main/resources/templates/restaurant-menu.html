@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Menu - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="dashboard-header">
+        <div>
+            <h1>Manage Menu Items</h1>
+            <p>Menu items listed by <strong th:text="${restaurant.restaurantName}">Restaurant</strong></p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary" onclick="openAddModal()">+ Add New Item</button>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <!-- Add / Edit Menu Item Form Card -->
+    <div id="itemModal" class="card form-card mb-4" th:style="${(editing != null and editing) or (showAddModal != null and showAddModal) ? 'display:block;' : 'display:none;'}">
+        <h3 th:text="${editing != null and editing ? 'Edit Menu Item' : 'Add New Menu Item'}">Add Menu Item</h3>
+        
+        <form th:action="${editing != null and editing ? '/restaurant/menu/edit/' + menuItemForm.id : '/restaurant/menu/add'}"
+              th:object="${menuItemForm}" method="post">
+            <input type="hidden" th:field="*{id}" th:if="${editing != null and editing}"/>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="name">Dish Name <span class="required">*</span></label>
+                    <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="e.g. Masala Dosa" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="category">Category <span class="required">*</span></label>
+                    <select id="category" th:field="*{category}" class="form-control" required>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Drinks">Drinks</option>
+                        <option value="Desserts">Desserts</option>
+                    </select>
+                    <span class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></span>
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="price">Price (₹) <span class="required">*</span></label>
+                    <input type="number" step="0.5" id="price" th:field="*{price}" class="form-control" placeholder="90.0" min="1" required/>
+                    <span class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description <span class="required">*</span></label>
+                <textarea id="description" th:field="*{description}" class="form-control" rows="2" placeholder="Describe the ingredients, taste, and preparation..." required></textarea>
+                <span class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="availability">Availability Status <span class="required">*</span></label>
+                <select id="availability" th:field="*{availability}" class="form-control" style="max-width: 200px;" required>
+                    <option value="Available">Available</option>
+                    <option value="Unavailable">Unavailable</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing != null and editing ? 'Save Item Changes' : 'Create Menu Item'}">Submit</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Close</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Menu Items Table -->
+    <div class="card">
+        <div th:if="${#lists.isEmpty(menuItems)}" class="empty-state">
+            <span class="empty-icon">🍳</span>
+            <h3>No menu items found</h3>
+            <p>Start by adding your first dish using the button above.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(menuItems)}" class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${menuItems}">
+                    <td>
+                        <strong th:text="${item.name}">Dish Name</strong>
+                        <p class="table-subtext" th:text="${item.description}">Short description...</p>
+                    </td>
+                    <td>
+                        <span class="category-pill" th:text="${item.category}">Category</span>
+                    </td>
+                    <td>
+                        <strong>₹<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</span></strong>
+                    </td>
+                    <td>
+                        <span class="badge" th:classappend="${item.availability == 'Available' ? 'badge-success' : 'badge-danger'}"
+                              th:text="${item.availability}">Available</span>
+                    </td>
+                    <td class="action-cell">
+                        <form th:action="@{/restaurant/menu/availability/{id}(id=${item.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-outline"
+                                    th:text="${item.availability == 'Available' ? 'Mark Out' : 'Mark In'}">Toggle</button>
+                        </form>
+                        <a th:href="@{/restaurant/menu/edit/{id}(id=${item.id})}" class="btn btn-sm btn-outline">Edit</a>
+                        <form th:action="@{/restaurant/menu/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this menu item?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    function openAddModal() {
+        document.getElementById('itemModal').style.display = 'block';
+        window.scrollTo({ top: 150, behavior: 'smooth' });
+    }
+    function closeModal() {
+        document.getElementById('itemModal').style.display = 'none';
+    }
+</script>
+</body>
+</html>

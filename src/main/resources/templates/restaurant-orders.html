@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Orders - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="dashboard-header">
+        <div>
+            <h1>Customer Orders</h1>
+            <p>Orders received by <strong th:text="${restaurant.restaurantName}">Restaurant</strong></p>
+        </div>
+        <div>
+            <a th:href="@{/restaurant/orders}" class="btn btn-outline">&#x21bb; Refresh Orders</a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="empty-state">
+        <span class="empty-icon">📦</span>
+        <h3>No orders received yet</h3>
+        <p>When customers order from your restaurant, their orders will appear here in real-time.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(orders)}" class="orders-list">
+        <div th:each="orderView : ${orders}" class="card order-card">
+            <div class="order-card-header">
+                <div>
+                    <h3 th:text="'Order #' + ${orderView.order.id}">Order #1</h3>
+                    <span class="muted" th:text="${#temporals.format(orderView.order.orderDate, 'dd-MMM-yyyy HH:mm')}">Date</span>
+                </div>
+                <div>
+                    <span th:replace="~{fragments/order-status :: orderStatus(${orderView.order.orderStatus})}"></span>
+                </div>
+            </div>
+
+            <div class="order-card-body">
+                <div class="order-customer-box" th:if="${orderView.customer != null}">
+                    <p><strong>Customer:</strong> <span th:text="${orderView.customer.fullName}">Name</span> | 
+                       <strong>Phone:</strong> <span th:text="${orderView.customer.phone}">Phone</span></p>
+                </div>
+
+                <p><strong>Order Type:</strong> <span th:text="${orderView.order.orderType}">Delivery</span> | 
+                   <strong>Payment:</strong> <span th:text="${orderView.order.paymentMethod}">Cash on Delivery</span></p>
+                
+                <p th:if="${orderView.order.orderType == 'Delivery'}">
+                    <strong>Delivery Address:</strong> <span th:text="${orderView.order.deliveryAddress}">Address</span>
+                </p>
+
+                <div class="order-items-table-box">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${orderView.items}">
+                            <td th:text="${item.itemName}">Item</td>
+                            <td th:text="${item.quantity}">1</td>
+                            <td>₹<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span></td>
+                            <td>₹<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="order-card-footer">
+                    <div>
+                        <strong>Total: ₹<span th:text="${#numbers.formatDecimal(orderView.order.finalAmount, 1, 2)}">0.00</span></strong>
+                    </div>
+
+                    <div class="status-updater">
+                        <form th:action="@{/restaurant/orders/{id}/status(id=${orderView.order.id})}" method="post" class="form-inline">
+                            <label for="statusSelect" class="mr-2"><strong>Update Status:</strong></label>
+                            <select name="status" id="statusSelect" class="form-control form-control-sm mr-2">
+                                <option value="PENDING" th:selected="${orderView.order.orderStatus == 'PENDING'}">PENDING</option>
+                                <option value="ACCEPTED" th:selected="${orderView.order.orderStatus == 'ACCEPTED'}">ACCEPTED</option>
+                                <option value="PREPARING" th:selected="${orderView.order.orderStatus == 'PREPARING'}">PREPARING</option>
+                                <option value="READY_FOR_PICKUP" th:selected="${orderView.order.orderStatus == 'READY_FOR_PICKUP'}">READY_FOR_PICKUP</option>
+                                <option value="OUT_FOR_DELIVERY" th:selected="${orderView.order.orderStatus == 'OUT_FOR_DELIVERY'}">OUT_FOR_DELIVERY</option>
+                                <option value="DELIVERED" th:selected="${orderView.order.orderStatus == 'DELIVERED'}">DELIVERED</option>
+                                <option value="CANCELLED" th:selected="${orderView.order.orderStatus == 'CANCELLED'}">CANCELLED</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -52,3 +52,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     toggleAddressField();
 });
+
+
+// Highlight active link in mobile bottom nav
+document.addEventListener("DOMContentLoaded", function () {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll(".mob-nav-item");
+    navItems.forEach((item) => {
+        const href = item.getAttribute("href");
+        if (href && (href === currentPath || (href !== "/" && currentPath.startsWith(href)))) {
+            item.classList.add("active");
+        }
+    });
+});

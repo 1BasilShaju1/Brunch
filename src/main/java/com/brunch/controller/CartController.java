@@ -1,8 +1,8 @@
 package com.brunch.controller;
 
 import com.brunch.dto.CartItemForm;
-import com.brunch.entity.Cart;
-import com.brunch.entity.User;
+import com.brunch.dto.CartView;
+import com.brunch.model.User;
 import com.brunch.service.CartService;
 import com.brunch.service.UserService;
 import jakarta.validation.Valid;
@@ -26,13 +26,12 @@ public class CartController {
     @GetMapping
     public String viewCart(Model model) {
         User customer = userService.getAuthenticatedUser();
-        Cart cart = cartService.getOrCreateCart(customer);
-        double subtotal = cartService.calculateCartTotal(cart);
+        CartView cart = cartService.getCartView(customer);
 
         model.addAttribute("cart", cart);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("deliveryFee", 30.0);
-        model.addAttribute("total", subtotal > 0 ? (subtotal + 30.0) : 0.0);
+        model.addAttribute("subtotal", cart.getSubtotal());
+        model.addAttribute("deliveryFee", cart.getDeliveryFee());
+        model.addAttribute("total", cart.getTotal());
         return "cart";
     }
 
@@ -70,6 +69,18 @@ public class CartController {
         try {
             cartService.removeCartItem(customer, cartItemId);
             redirectAttributes.addFlashAttribute("successMessage", "Item removed from cart!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/cart";
+    }
+
+    @PostMapping("/clear")
+    public String clearCart(RedirectAttributes redirectAttributes) {
+        User customer = userService.getAuthenticatedUser();
+        try {
+            cartService.clearCart(customer);
+            redirectAttributes.addFlashAttribute("successMessage", "Cart cleared!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

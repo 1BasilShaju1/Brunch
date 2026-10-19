@@ -6,19 +6,22 @@
     <title>Login - Brunch</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="auth-body">
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="auth-wrapper">
-    <div class="card auth-card">
-        <h2 class="auth-title">Welcome Back</h2>
-        <p class="auth-sub">Log in with your customer or staff credentials</p>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-icon">🍳</span>
+            <h2>Welcome Back</h2>
+            <p>Log in to access your customer or restaurant account</p>
+        </div>
 
         <div th:if="${param.error}" class="alert alert-danger">Invalid email or password. Please try again.</div>
         <div th:if="${param.logout}" class="alert alert-success">You have been logged out successfully.</div>
-        <div th:if="${param.registered}" class="alert alert-success">Registration successful! Please log in.</div>
+        <div th:if="${param.registered}" class="alert alert-success">Account created! Please log in with your credentials.</div>
 
-        <form th:action="@{/login}" method="post">
+        <form th:action="@{/login}" method="post" class="auth-form">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" class="form-control" placeholder="user@brunch.com" required/>
@@ -27,21 +30,29 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="password-wrapper">
-                    <input type="password" id="password" name="password" class="form-control" required/>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required/>
                     <button type="button" class="btn-toggle-pw" onclick="togglePasswordVisibility('password')">Show</button>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Log In</button>
         </form>
 
         <div class="credentials-box">
-            <h4>Sample Test Accounts:</h4>
-            <p><strong>Customer:</strong> customer@brunch.com | Customer@123</p>
-            <p><strong>Staff:</strong> staff@brunch.com | Staff@123</p>
+            <h4>Demo Accounts for Instant Testing:</h4>
+            <div class="demo-acc-item">
+                <span class="badge badge-success">Customer</span>
+                <code>customer@brunch.com</code> / <code>Customer@123</code>
+            </div>
+            <div class="demo-acc-item">
+                <span class="badge badge-primary">Restaurant</span>
+                <code>restaurant@brunch.com</code> / <code>Restaurant@123</code>
+            </div>
         </div>
 
-        <p class="auth-footer">New to Brunch? <a th:href="@{/register}">Create an account</a></p>
+        <div class="auth-footer">
+            <p>Don't have an account? <a th:href="@{/register}">Sign up here</a></p>
+        </div>
     </div>
 </div>
 

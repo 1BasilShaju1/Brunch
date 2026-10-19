@@ -10,6 +10,7 @@
         </a>
         <div class="nav-links">
             <a th:href="@{/}" class="nav-item">Home</a>
+            <a th:href="@{/restaurants}" class="nav-item">Restaurants</a>
             <a th:href="@{/menu}" class="nav-item">Menu</a>
 
             <!-- Customer links -->
@@ -19,11 +20,12 @@
                 <a th:href="@{/orders}" class="nav-item">My Orders</a>
             </th:block>
 
-            <!-- Staff links -->
-            <th:block sec:authorize="hasRole('STAFF')">
-                <a th:href="@{/staff/dashboard}" class="nav-item">Staff Panel</a>
-                <a th:href="@{/staff/menu}" class="nav-item">Manage Menu</a>
-                <a th:href="@{/staff/orders}" class="nav-item">All Orders</a>
+            <!-- Restaurant links -->
+            <th:block sec:authorize="hasRole('RESTAURANT')">
+                <a th:href="@{/restaurant/dashboard}" class="nav-item">Dashboard</a>
+                <a th:href="@{/restaurant/profile}" class="nav-item">Profile</a>
+                <a th:href="@{/restaurant/menu}" class="nav-item">Menu</a>
+                <a th:href="@{/restaurant/orders}" class="nav-item">Orders</a>
             </th:block>
 
             <!-- Anonymous Users -->
@@ -39,6 +41,48 @@
                 </form>
             </th:block>
         </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a th:href="@{/}" class="mob-nav-item">
+            <span class="mob-icon">🏠</span>
+            <span class="mob-label">Home</span>
+        </a>
+        <a th:href="@{/restaurants}" class="mob-nav-item">
+            <span class="mob-icon">🏬</span>
+            <span class="mob-label">Places</span>
+        </a>
+        <a th:href="@{/menu}" class="mob-nav-item">
+            <span class="mob-icon">🍽️</span>
+            <span class="mob-label">Menu</span>
+        </a>
+        <th:block sec:authorize="hasRole('CUSTOMER')">
+            <a th:href="@{/cart}" class="mob-nav-item">
+                <span class="mob-icon">🛒</span>
+                <span class="mob-label">Cart</span>
+            </a>
+            <a th:href="@{/customer/dashboard}" class="mob-nav-item">
+                <span class="mob-icon">👤</span>
+                <span class="mob-label">Account</span>
+            </a>
+        </th:block>
+        <th:block sec:authorize="hasRole('RESTAURANT')">
+            <a th:href="@{/restaurant/orders}" class="mob-nav-item">
+                <span class="mob-icon">📦</span>
+                <span class="mob-label">Orders</span>
+            </a>
+            <a th:href="@{/restaurant/dashboard}" class="mob-nav-item">
+                <span class="mob-icon">📊</span>
+                <span class="mob-label">Panel</span>
+            </a>
+        </th:block>
+        <th:block sec:authorize="isAnonymous()">
+            <a th:href="@{/login}" class="mob-nav-item">
+                <span class="mob-icon">🔑</span>
+                <span class="mob-label">Login</span>
+            </a>
+        </th:block>
     </div>
 </nav>
 </body>

@@ -1,9 +1,10 @@
 package com.brunch.controller;
 
+import com.brunch.dto.CartView;
 import com.brunch.dto.CheckoutForm;
-import com.brunch.entity.Cart;
-import com.brunch.entity.Order;
-import com.brunch.entity.User;
+import com.brunch.dto.OrderView;
+import com.brunch.model.Order;
+import com.brunch.model.User;
 import com.brunch.service.CartService;
 import com.brunch.service.OrderService;
 import com.brunch.service.UserService;
@@ -30,14 +31,15 @@ public class OrderController {
     @GetMapping("/checkout")
     public String showCheckoutPage(Model model) {
         User customer = userService.getAuthenticatedUser();
-        Cart cart = cartService.getOrCreateCart(customer);
-        if (cart.getItems().isEmpty()) {
+        CartView cart = cartService.getCartView(customer);
+        if (cart.isEmpty()) {
             return "redirect:/cart";
         }
 
-        double subtotal = cartService.calculateCartTotal(cart);
         model.addAttribute("cart", cart);
-        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("subtotal", cart.getSubtotal());
+        model.addAttribute("deliveryFee", cart.getDeliveryFee());
+        model.addAttribute("total", cart.getTotal());
         model.addAttribute("checkoutForm", new CheckoutForm());
         return "checkout";
     }
@@ -45,14 +47,15 @@ public class OrderController {
     @PostMapping("/checkout")
     public String processOrder(@Valid @ModelAttribute("checkoutForm") CheckoutForm form,
                                BindingResult bindingResult,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
+                               Model model) {
         User customer = userService.getAuthenticatedUser();
-        Cart cart = cartService.getOrCreateCart(customer);
+        CartView cart = cartService.getCartView(customer);
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("cart", cart);
-            model.addAttribute("subtotal", cartService.calculateCartTotal(cart));
+            model.addAttribute("subtotal", cart.getSubtotal());
+            model.addAttribute("deliveryFee", cart.getDeliveryFee());
+            model.addAttribute("total", cart.getTotal());
             return "checkout";
         }
 
@@ -61,7 +64,9 @@ public class OrderController {
             return "redirect:/orders/" + order.getId() + "?success=true";
         } catch (Exception e) {
             model.addAttribute("cart", cart);
-            model.addAttribute("subtotal", cartService.calculateCartTotal(cart));
+            model.addAttribute("subtotal", cart.getSubtotal());
+            model.addAttribute("deliveryFee", cart.getDeliveryFee());
+            model.addAttribute("total", cart.getTotal());
             model.addAttribute("errorMessage", e.getMessage());
             return "checkout";
         }
@@ -79,13 +84,14 @@ public class OrderController {
                                         @RequestParam(value = "success", defaultValue = "false") boolean success,
                                         Model model) {
         User customer = userService.getAuthenticatedUser();
-        Order order = orderService.getOrderById(id);
+        OrderView orderView = orderService.getOrderViewById(id);
 
-        if (!order.getCustomer().getId().equals(customer.getId())) {
+        if (orderView.getCustomer() == null || !orderView.getCustomer().getId().equals(customer.getId())) {
             return "redirect:/error";
         }
 
-        model.addAttribute("order", order);
+        model.addAttribute("order", orderView);
+        model.addAttribute("success", success);
         return "order-success";
     }
 

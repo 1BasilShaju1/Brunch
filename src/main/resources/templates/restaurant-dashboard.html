@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Dashboard - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="dashboard-header">
+        <div>
+            <h1>Restaurant Dashboard</h1>
+            <p>Welcome back, <strong th:text="${user.fullName}">Chef</strong>! Managing <strong th:text="${restaurant.restaurantName}">My Restaurant</strong> (<span th:text="${restaurant.city}">City</span>)</p>
+        </div>
+        <div>
+            <a th:href="@{/restaurant/profile}" class="btn btn-outline">Edit Profile</a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-icon">🍔</span>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${totalMenuItems}">0</span>
+                <span class="stat-label">Menu Items</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">📦</span>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${totalOrders}">0</span>
+                <span class="stat-label">Total Orders</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-highlight">
+            <span class="stat-icon">⏳</span>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${pendingOrders}">0</span>
+                <span class="stat-label">Pending Orders</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">💰</span>
+            <div class="stat-info">
+                <span class="stat-value">₹<span th:text="${#numbers.formatDecimal(revenue, 1, 2)}">0.00</span></span>
+                <span class="stat-label">Total Revenue</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Quick Links -->
+    <div class="dashboard-actions">
+        <a th:href="@{/restaurant/menu}" class="dashboard-card">
+            <span class="icon">📋</span>
+            <h3>Manage Menu</h3>
+            <p>Add new dishes, update prices, and toggle in-stock / sold-out availability</p>
+        </a>
+
+        <a th:href="@{/restaurant/orders}" class="dashboard-card">
+            <span class="icon">📦</span>
+            <h3>Customer Orders</h3>
+            <p>Track incoming customer orders, accept, prepare, and update live order statuses</p>
+        </a>
+
+        <a th:href="@{/restaurant/profile}" class="dashboard-card">
+            <span class="icon">⚙️</span>
+            <h3>Restaurant Profile</h3>
+            <p>Update opening hours, contact details, address, and city location</p>
+        </a>
+    </div>
+
+    <!-- File Storage Info Banner -->
+    <div class="card info-banner">
+        <h3>📁 Zero-Database File Storage Status</h3>
+        <p>Brunch runs with zero cloud or external database setup. All your restaurant items, customer profiles, and incoming orders are safely persisted locally in standard JSON files under the <code>data/</code> folder.</p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

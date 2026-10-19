@@ -1,47 +1,75 @@
 package com.brunch.service;
 
 import com.brunch.dto.RegisterForm;
-import com.brunch.entity.Cart;
-import com.brunch.entity.User;
-import com.brunch.repository.CartRepository;
-import com.brunch.repository.UserRepository;
+import com.brunch.model.Cart;
+import com.brunch.model.RestaurantProfile;
+import com.brunch.model.User;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final CartRepository cartRepository;
+    private final FileStorageService fileStorageService;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, CartRepository cartRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.cartRepository = cartRepository;
+    public UserService(FileStorageService fileStorageService, @Lazy PasswordEncoder passwordEncoder) {
+        this.fileStorageService = fileStorageService;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
-    public User registerCustomer(RegisterForm form) {
-        if (userRepository.existsByEmail(form.getEmail())) {
+    public User registerUser(RegisterForm form) {
+        String email = form.getEmail() != null ? form.getEmail().trim().toLowerCase() : "";
+        if (fileStorageService.findUserByEmail(email).isPresent()) {
             throw new IllegalArgumentException("An account with this email already exists");
         }
+
+        String role = (form.getRole() != null && form.getRole().equalsIgnoreCase("RESTAURANT"))
+                ? "RESTAURANT" : "CUSTOMER";
+
         User user = new User();
         user.setFullName(form.getFullName().trim());
-        user.setEmail(form.getEmail().trim().toLowerCase());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(form.getPassword()));
         user.setPhone(form.getPhone().trim());
-        user.setRole("CUSTOMER");
+        user.setRole(role);
+        user.setCreatedAt(LocalDateTime.now());
 
-        User savedUser = userRepository.save(user);
+        User savedUser = fileStorageService.saveUser(user);
 
-        Cart cart = new Cart(savedUser);
-        cartRepository.save(cart);
+        if ("CUSTOMER".equals(role)) {
+            Cart cart = new Cart();
+            cart.setCustomerId(savedUser.getId());
+            fileStorageService.saveCart(cart);
+        } else if ("RESTAURANT".equals(role)) {
+            RestaurantProfile profile = new RestaurantProfile();
+            profile.setUserId(savedUser.getId());
+            profile.setRestaurantName(form.getRestaurantName() != null && !form.getRestaurantName().isBlank()
+                    ? form.getRestaurantName().trim() : savedUser.getFullName() + "'s Kitchen");
+            profile.setDescription("Delicious home-style food cooked fresh every day.");
+            profile.setPhone(savedUser.getPhone());
+            profile.setCity(form.getCity() != null && !form.getCity().isBlank() ? form.getCity().trim() : "Bangalore");
+            profile.setAddress(form.getAddress() != null && !form.getAddress().isBlank() ? form.getAddress().trim() : "Main Street");
+            profile.setOpeningTime("08:00 AM");
+            profile.setClosingTime("11:00 PM");
+            fileStorageService.saveRestaurant(profile);
+        }
 
         return savedUser;
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return fileStorageService.findUserByEmail(email);
+    }
+
+    public Optional<User> findById(Long id) {
+        return fileStorageService.findUserById(id);
     }
 
     public User getAuthenticatedUser() {
@@ -49,6 +77,6 @@ public class UserService {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;
         }
-        return userRepository.findByEmail(auth.getName()).orElse(null);
+        return fileStorageService.findUserByEmail(auth.getName()).orElse(null);
     }
 }

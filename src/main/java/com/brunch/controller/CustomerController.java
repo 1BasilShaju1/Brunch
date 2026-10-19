@@ -1,7 +1,7 @@
 package com.brunch.controller;
 
-import com.brunch.entity.Order;
-import com.brunch.entity.User;
+import com.brunch.dto.OrderView;
+import com.brunch.model.User;
 import com.brunch.service.OrderService;
 import com.brunch.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -26,7 +26,10 @@ public class CustomerController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         User customer = userService.getAuthenticatedUser();
-        List<Order> recentOrders = orderService.getCustomerOrders(customer);
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        List<OrderView> recentOrders = orderService.getCustomerOrders(customer);
         if (recentOrders.size() > 5) {
             recentOrders = recentOrders.subList(0, 5);
         }

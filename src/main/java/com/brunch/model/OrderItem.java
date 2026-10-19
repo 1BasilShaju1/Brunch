@@ -1,41 +1,21 @@
-package com.brunch.entity;
+package com.brunch.model;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "order_items")
 public class OrderItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_item_id", nullable = false)
-    private MenuItem menuItem;
-
-    @Column(nullable = false, length = 100)
+    private Long orderId;
+    private Long menuItemId;
     private String itemName;
-
-    @Column(nullable = false)
     private Integer quantity;
-
-    @Column(nullable = false)
     private Double unitPrice;
-
-    @Column(nullable = false)
     private Double subtotal;
 
     public OrderItem() {
     }
 
-    public OrderItem(Order order, MenuItem menuItem, String itemName, Integer quantity, Double unitPrice, Double subtotal) {
-        this.order = order;
-        this.menuItem = menuItem;
+    public OrderItem(Long id, Long orderId, Long menuItemId, String itemName, Integer quantity, Double unitPrice, Double subtotal) {
+        this.id = id;
+        this.orderId = orderId;
+        this.menuItemId = menuItemId;
         this.itemName = itemName;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -50,20 +30,20 @@ public class OrderItem {
         this.id = id;
     }
 
-    public Order getOrder() {
-        return order;
+    public Long getOrderId() {
+        return orderId;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
-    public MenuItem getMenuItem() {
-        return menuItem;
+    public Long getMenuItemId() {
+        return menuItemId;
     }
 
-    public void setMenuItem(MenuItem menuItem) {
-        this.menuItem = menuItem;
+    public void setMenuItemId(Long menuItemId) {
+        this.menuItemId = menuItemId;
     }
 
     public String getItemName() {

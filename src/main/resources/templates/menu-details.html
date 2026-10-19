@@ -17,6 +17,15 @@
                   th:text="${item.availability}">Available</span>
         </div>
         <h1 class="details-title" th:text="${item.name}">Dish Name</h1>
+        
+        <p class="details-restaurant-meta" th:if="${restaurant != null}">
+            Prepared fresh by: 
+            <a th:href="@{/restaurants/{id}(id=${restaurant.id})}" class="rest-link">
+                <strong th:text="${restaurant.restaurantName}">Restaurant</strong> 
+                (<span th:text="${restaurant.city}">City</span>)
+            </a>
+        </p>
+
         <p class="details-desc" th:text="${item.description}">Description</p>
         <div class="details-price">₹<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</span></div>
 
@@ -25,7 +34,7 @@
                 <form th:if="${item.availability == 'Available'}" th:action="@{/cart/add/{id}(id=${item.id})}" method="post" class="add-cart-form">
                     <label for="quantity">Quantity:</label>
                     <input type="number" id="quantity" name="quantity" value="1" min="1" max="50" class="form-control qty-input"/>
-                    <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+                    <button type="submit" class="btn btn-primary btn-lg">+ Add to Cart</button>
                 </form>
                 <p th:unless="${item.availability == 'Available'}" class="alert alert-warning">This item is currently sold out.</p>
             </th:block>
@@ -34,8 +43,8 @@
                 <p>Please <a th:href="@{/login}">log in as a customer</a> to add this item to your cart.</p>
             </th:block>
 
-            <th:block sec:authorize="hasRole('STAFF')">
-                <p class="alert alert-info">Staff accounts cannot place customer orders. Manage this item from the Staff Menu.</p>
+            <th:block sec:authorize="hasRole('RESTAURANT')">
+                <p class="alert alert-info">You are logged in as a Restaurant. Please log in with a Customer account to place orders.</p>
             </th:block>
         </div>
 

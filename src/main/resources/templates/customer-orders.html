@@ -16,8 +16,10 @@
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
     <div th:if="${#lists.isEmpty(orders)}" class="empty-state">
-        <p>You have not placed any orders yet.</p>
-        <a th:href="@{/menu}" class="btn btn-primary">Start an Order</a>
+        <span class="empty-icon">📦</span>
+        <h3>No orders placed yet</h3>
+        <p>Explore menus from our top restaurants and order delicious food today!</p>
+        <a th:href="@{/restaurants}" class="btn btn-primary">Find Restaurants</a>
     </div>
 
     <div th:unless="${#lists.isEmpty(orders)}" class="orders-list">
@@ -33,6 +35,10 @@
             </div>
 
             <div class="order-card-body">
+                <p th:if="${order.restaurant != null}">
+                    <strong>Restaurant:</strong> 
+                    <a th:href="@{/restaurants/{id}(id=${order.restaurant.id})}" th:text="${order.restaurant.restaurantName}">Restaurant</a>
+                </p>
                 <p><strong>Order Type:</strong> <span th:text="${order.orderType}">Delivery</span> | 
                    <strong>Payment:</strong> <span th:text="${order.paymentMethod}">Cash on Delivery</span></p>
                 <p th:if="${order.orderType == 'Delivery'}"><strong>Address:</strong> <span th:text="${order.deliveryAddress}">Address</span></p>

@@ -12,15 +12,16 @@
 <header class="hero">
     <div class="hero-content">
         <h1>Delicious Food Delivered Fresh &amp; Fast</h1>
-        <p>From warm morning breakfasts to gourmet dinners, Brunch satisfies every craving.</p>
+        <p>From morning brunch bowls to artisan dinners, order directly from your favorite local kitchens.</p>
         <div class="hero-buttons">
-            <a th:href="@{/menu}" class="btn btn-primary btn-lg">Browse Menu</a>
-            <a th:href="@{/register}" class="btn btn-secondary btn-lg">Join as Customer</a>
+            <a th:href="@{/restaurants}" class="btn btn-primary btn-lg">Explore Restaurants</a>
+            <a th:href="@{/menu}" class="btn btn-secondary btn-lg">Browse Full Menu</a>
         </div>
     </div>
 </header>
 
 <main class="container">
+    <!-- Categories Section -->
     <section class="section">
         <h2 class="section-heading">Browse by Category</h2>
         <div class="category-grid">
@@ -47,6 +48,31 @@
         </div>
     </section>
 
+    <!-- Featured Restaurants Section -->
+    <section class="section" th:if="${restaurants != null and !restaurants.isEmpty()}">
+        <div class="section-header-row">
+            <h2 class="section-heading">Featured Restaurants</h2>
+            <a th:href="@{/restaurants}" class="link-more">View All Restaurants &rarr;</a>
+        </div>
+        <div class="restaurant-grid">
+            <div class="restaurant-card" th:each="r : ${restaurants}">
+                <div class="restaurant-card-header">
+                    <span class="rest-badge" th:text="${r.city}">City</span>
+                    <span class="timing-badge" th:text="${r.openingTime + ' - ' + r.closingTime}">Hours</span>
+                </div>
+                <h3 class="restaurant-name">
+                    <a th:href="@{/restaurants/{id}(id=${r.id})}" th:text="${r.restaurantName}">Restaurant Name</a>
+                </h3>
+                <p class="restaurant-desc" th:text="${r.description}">Description</p>
+                <div class="restaurant-footer">
+                    <span class="restaurant-address" th:text="'📍 ' + ${r.address}">Address</span>
+                    <a th:href="@{/restaurants/{id}(id=${r.id})}" class="btn btn-sm btn-primary">View Menu</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Dishes Section -->
     <section class="section">
         <div class="section-header-row">
             <h2 class="section-heading">Popular Items</h2>

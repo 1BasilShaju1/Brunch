@@ -13,7 +13,7 @@
     <div class="card confirmation-card">
         <div class="success-icon">🎉</div>
         <h1>Order Confirmed!</h1>
-        <p class="confirmation-subtitle">Thank you for ordering with Brunch. Your kitchen is preparing your feast.</p>
+        <p class="confirmation-subtitle">Thank you for ordering with Brunch. Your meal is being prepared.</p>
 
         <div class="order-id-badge">
             Order Reference: <strong th:text="'#' + ${order.id}">#1001</strong>
@@ -21,6 +21,7 @@
 
         <div class="receipt-box">
             <h3>Order Details</h3>
+            <p th:if="${order.restaurant != null}"><strong>Restaurant:</strong> <span th:text="${order.restaurant.restaurantName}">Restaurant</span> (<span th:text="${order.restaurant.city}">City</span>)</p>
             <p><strong>Status:</strong> <span th:replace="~{fragments/order-status :: orderStatus(${order.orderStatus})}"></span></p>
             <p><strong>Order Type:</strong> <span th:text="${order.orderType}">Delivery</span></p>
             <p><strong>Payment Method:</strong> <span th:text="${order.paymentMethod}">Cash on Delivery</span></p>
@@ -62,7 +63,7 @@
 
         <div class="confirmation-actions">
             <a th:href="@{/orders}" class="btn btn-primary btn-lg">View My Orders</a>
-            <a th:href="@{/menu}" class="btn btn-outline btn-lg">Continue Browsing</a>
+            <a th:href="@{/restaurants}" class="btn btn-outline btn-lg">Explore More Restaurants</a>
         </div>
     </div>
 </main>

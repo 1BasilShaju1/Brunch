@@ -1,48 +1,25 @@
-package com.brunch.entity;
+package com.brunch.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "menu_items")
 public class MenuItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 100)
+    private Long restaurantId;
     private String name;
-
-    @Column(nullable = false, length = 50)
     private String category; // Breakfast, Main Course, Snacks, Drinks, Desserts
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(nullable = false)
     private Double price;
-
-    @Column(nullable = false, length = 20)
     private String availability; // Available, Unavailable
-
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     public MenuItem() {
     }
 
-    public MenuItem(String name, String category, String description, Double price, String availability) {
+    public MenuItem(Long id, Long restaurantId, String name, String category, String description, Double price, String availability) {
+        this.id = id;
+        this.restaurantId = restaurantId;
         this.name = name;
         this.category = category;
         this.description = description;
         this.price = price;
-        this.availability = availability;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.availability = availability != null ? availability : "Available";
     }
 
     public Long getId() {
@@ -51,6 +28,14 @@ public class MenuItem {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
     }
 
     public String getName() {
@@ -91,13 +76,5 @@ public class MenuItem {
 
     public void setAvailability(String availability) {
         this.availability = availability;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

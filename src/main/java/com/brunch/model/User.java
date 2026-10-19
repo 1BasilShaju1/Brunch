@@ -1,48 +1,27 @@
-package com.brunch.entity;
+package com.brunch.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
 public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 100)
     private String fullName;
-
-    @Column(nullable = false, unique = true, length = 100)
     private String email;
-
-    @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false, length = 20)
     private String phone;
-
-    @Column(nullable = false, length = 20)
-    private String role; // CUSTOMER, STAFF
-
-    @Column(nullable = false, updatable = false)
+    private String role; // CUSTOMER, RESTAURANT
     private LocalDateTime createdAt;
 
     public User() {
     }
 
-    public User(String fullName, String email, String password, String phone, String role) {
+    public User(Long id, String fullName, String email, String password, String phone, String role, LocalDateTime createdAt) {
+        this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.role = role;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 
     public Long getId() {

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurants - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="page-header">
+    <div class="container">
+        <h1>Discover Top Restaurants</h1>
+        <p>Order fresh culinary creations directly from local chefs and cafes</p>
+    </div>
+</div>
+
+<main class="container">
+    <!-- Search & Filter Bar -->
+    <div class="search-filter-card">
+        <form th:action="@{/restaurants}" method="get" class="search-filter-form">
+            <div class="search-input-group">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="query" th:value="${query}" placeholder="Search restaurants or cuisines..." class="form-control search-field"/>
+            </div>
+            <div class="filter-group">
+                <select name="city" class="form-control filter-select" onchange="this.form.submit()">
+                    <option value="All" th:selected="${selectedCity == 'All'}">All Cities</option>
+                    <option value="Bangalore" th:selected="${selectedCity == 'Bangalore'}">Bangalore</option>
+                    <option value="Mumbai" th:selected="${selectedCity == 'Mumbai'}">Mumbai</option>
+                    <option value="Delhi" th:selected="${selectedCity == 'Delhi'}">Delhi</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a th:if="${(query != null and !query.isBlank()) or (selectedCity != null and selectedCity != 'All')}"
+               th:href="@{/restaurants}" class="btn btn-outline">Clear</a>
+        </form>
+    </div>
+
+    <!-- Restaurant Cards List -->
+    <section class="section">
+        <div th:if="${restaurants == null or restaurants.isEmpty()}" class="empty-state">
+            <span class="empty-icon">🍽️</span>
+            <h3>No restaurants found</h3>
+            <p>Try searching with another name or city.</p>
+            <a th:href="@{/restaurants}" class="btn btn-primary">View All Restaurants</a>
+        </div>
+
+        <div class="restaurant-grid" th:if="${restaurants != null and !restaurants.isEmpty()}">
+            <div class="restaurant-card" th:each="r : ${restaurants}">
+                <div class="restaurant-card-header">
+                    <span class="rest-badge" th:text="${r.city}">City</span>
+                    <span class="timing-badge" th:text="'🕒 ' + ${r.openingTime + ' - ' + r.closingTime}">Hours</span>
+                </div>
+                <h3 class="restaurant-name">
+                    <a th:href="@{/restaurants/{id}(id=${r.id})}" th:text="${r.restaurantName}">Restaurant Name</a>
+                </h3>
+                <p class="restaurant-desc" th:text="${r.description}">Description</p>
+                <div class="restaurant-info-meta">
+                    <span class="restaurant-address" th:text="'📍 ' + ${r.address}">Address</span>
+                    <span class="restaurant-phone" th:text="'📞 ' + ${r.phone}">Phone</span>
+                </div>
+                <div class="restaurant-footer">
+                    <a th:href="@{/restaurants/{id}(id=${r.id})}" class="btn btn-primary btn-block">View Menu &amp; Order &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

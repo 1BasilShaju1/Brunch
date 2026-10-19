@@ -1,36 +1,40 @@
 package com.brunch.service;
 
+import com.brunch.dto.CartItemView;
+import com.brunch.dto.CartView;
 import com.brunch.dto.CheckoutForm;
-import com.brunch.entity.*;
-import com.brunch.repository.OrderRepository;
+import com.brunch.dto.OrderView;
+import com.brunch.model.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
 
-    private final OrderRepository orderRepository;
+    private final FileStorageService fileStorageService;
     private final CartService cartService;
+    private final RestaurantService restaurantService;
 
-    public OrderService(OrderRepository orderRepository, CartService cartService) {
-        this.orderRepository = orderRepository;
+    public OrderService(FileStorageService fileStorageService, CartService cartService, RestaurantService restaurantService) {
+        this.fileStorageService = fileStorageService;
         this.cartService = cartService;
+        this.restaurantService = restaurantService;
     }
 
-    @Transactional
     public Order placeOrder(User customer, CheckoutForm form) {
-        Cart cart = cartService.getOrCreateCart(customer);
-        if (cart.getItems().isEmpty()) {
+        CartView cartView = cartService.getCartView(customer);
+        if (cartView.isEmpty()) {
             throw new IllegalStateException("Your cart is empty. Add food items before checkout.");
         }
 
-        for (CartItem item : cart.getItems()) {
-            if (!"Available".equalsIgnoreCase(item.getMenuItem().getAvailability())) {
-                throw new IllegalStateException("Item '" + item.getMenuItem().getName() + "' is no longer available.");
+        for (CartItemView civ : cartView.getItems()) {
+            if (!"Available".equalsIgnoreCase(civ.getMenuItem().getAvailability())) {
+                throw new IllegalStateException("Item '" + civ.getMenuItem().getName() + "' is no longer available.");
             }
         }
 
@@ -39,70 +43,88 @@ public class OrderService {
             throw new IllegalArgumentException("Delivery address is required for delivery orders");
         }
 
-        double totalAmount = cartService.calculateCartTotal(cart);
-        double deliveryFee = isDelivery ? 30.0 : 0.0;
-        double finalAmount = totalAmount + deliveryFee;
-
         Order order = new Order();
-        order.setCustomer(customer);
-        order.setTotalAmount(totalAmount);
-        order.setDeliveryFee(deliveryFee);
-        order.setFinalAmount(finalAmount);
+        order.setCustomerId(customer.getId());
+        order.setRestaurantId(cartView.getRestaurantId() != null ? cartView.getRestaurantId() : 1L);
+        order.setTotalAmount(cartView.getSubtotal());
+        order.setDeliveryFee(isDelivery ? 30.0 : 0.0);
+        order.setFinalAmount(order.getTotalAmount() + order.getDeliveryFee());
         order.setOrderType(form.getOrderType());
         order.setPaymentMethod(form.getPaymentMethod());
         order.setDeliveryAddress(isDelivery ? form.getDeliveryAddress().trim() : "Not Applicable (Pickup)");
         order.setOrderStatus("PENDING");
         order.setOrderDate(LocalDateTime.now());
 
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (CartItem cartItem : cart.getItems()) {
-            OrderItem orderItem = new OrderItem(
-                    order,
-                    cartItem.getMenuItem(),
-                    cartItem.getMenuItem().getName(),
-                    cartItem.getQuantity(),
-                    cartItem.getMenuItem().getPrice(),
-                    cartItem.getSubtotal()
-            );
-            orderItems.add(orderItem);
-        }
-        order.setItems(orderItems);
+        Order savedOrder = fileStorageService.saveOrder(order);
 
-        Order savedOrder = orderRepository.save(order);
-        cartService.clearCart(cart);
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CartItemView civ : cartView.getItems()) {
+            OrderItem oi = new OrderItem();
+            oi.setOrderId(savedOrder.getId());
+            oi.setMenuItemId(civ.getMenuItem().getId());
+            oi.setItemName(civ.getMenuItem().getName());
+            oi.setQuantity(civ.getQuantity());
+            oi.setUnitPrice(civ.getMenuItem().getPrice());
+            oi.setSubtotal(civ.getSubtotal());
+            orderItems.add(oi);
+        }
+        fileStorageService.saveOrderItems(orderItems);
+
+        // Clear cart
+        cartService.clearCart(customer);
 
         return savedOrder;
     }
 
-    public List<Order> getCustomerOrders(User customer) {
-        return orderRepository.findByCustomerOrderByOrderDateDesc(customer);
-    }
-
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
+        return fileStorageService.findOrderById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAllByOrderByOrderDateDesc();
+    public OrderView getOrderViewById(Long id) {
+        Order order = getOrderById(id);
+        User customer = fileStorageService.findUserById(order.getCustomerId()).orElse(null);
+        RestaurantProfile restaurant = fileStorageService.findRestaurantById(order.getRestaurantId()).orElse(null);
+        List<OrderItem> items = fileStorageService.findOrderItemsByOrderId(order.getId());
+        return new OrderView(order, customer, restaurant, items);
     }
 
-    @Transactional
+    public List<OrderView> getCustomerOrders(User customer) {
+        List<Order> orders = fileStorageService.findOrdersByCustomerId(customer.getId());
+        return orders.stream().map(o -> {
+            RestaurantProfile restaurant = fileStorageService.findRestaurantById(o.getRestaurantId()).orElse(null);
+            List<OrderItem> items = fileStorageService.findOrderItemsByOrderId(o.getId());
+            return new OrderView(o, customer, restaurant, items);
+        }).collect(Collectors.toList());
+    }
+
+    public List<OrderView> getRestaurantOrders(Long restaurantId) {
+        List<Order> orders = fileStorageService.findOrdersByRestaurantId(restaurantId);
+        return orders.stream().map(o -> {
+            User customer = fileStorageService.findUserById(o.getCustomerId()).orElse(null);
+            RestaurantProfile restaurant = fileStorageService.findRestaurantById(restaurantId).orElse(null);
+            List<OrderItem> items = fileStorageService.findOrderItemsByOrderId(o.getId());
+            return new OrderView(o, customer, restaurant, items);
+        }).collect(Collectors.toList());
+    }
+
     public void cancelPendingOrder(Long orderId, User customer) {
         Order order = getOrderById(orderId);
-        if (!order.getCustomer().getId().equals(customer.getId())) {
+        if (!order.getCustomerId().equals(customer.getId())) {
             throw new SecurityException("Unauthorized to cancel this order");
         }
         if (!"PENDING".equalsIgnoreCase(order.getOrderStatus())) {
             throw new IllegalStateException("Only orders with PENDING status can be cancelled");
         }
         order.setOrderStatus("CANCELLED");
-        orderRepository.save(order);
+        fileStorageService.saveOrder(order);
     }
 
-    @Transactional
-    public void updateOrderStatus(Long orderId, String newStatus) {
+    public void updateOrderStatus(Long orderId, String newStatus, Long restaurantId) {
         Order order = getOrderById(orderId);
+        if (restaurantId != null && !restaurantId.equals(order.getRestaurantId())) {
+            throw new SecurityException("Unauthorized to update order for another restaurant");
+        }
         List<String> validStatuses = List.of(
                 "PENDING", "ACCEPTED", "PREPARING", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"
         );
@@ -110,14 +132,23 @@ public class OrderService {
             throw new IllegalArgumentException("Invalid status value: " + newStatus);
         }
         order.setOrderStatus(newStatus);
-        orderRepository.save(order);
+        fileStorageService.saveOrder(order);
     }
 
-    public long countTotalOrders() {
-        return orderRepository.count();
+    public long countTotalOrdersByRestaurant(Long restaurantId) {
+        return fileStorageService.findOrdersByRestaurantId(restaurantId).size();
     }
 
-    public long countPendingOrders() {
-        return orderRepository.countByOrderStatus("PENDING");
+    public long countPendingOrdersByRestaurant(Long restaurantId) {
+        return fileStorageService.findOrdersByRestaurantId(restaurantId).stream()
+                .filter(o -> "PENDING".equalsIgnoreCase(o.getOrderStatus()))
+                .count();
+    }
+
+    public double calculateRestaurantRevenue(Long restaurantId) {
+        return fileStorageService.findOrdersByRestaurantId(restaurantId).stream()
+                .filter(o -> !"CANCELLED".equalsIgnoreCase(o.getOrderStatus()))
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
     }
 }

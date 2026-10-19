@@ -1,7 +1,7 @@
 package com.brunch.config;
 
-import com.brunch.entity.User;
-import com.brunch.repository.UserRepository;
+import com.brunch.model.User;
+import com.brunch.service.FileStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,10 +17,10 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
-    public SecurityConfig(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public SecurityConfig(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
     }
 
     @Bean
@@ -31,7 +31,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            User user = userRepository.findByEmail(username.trim().toLowerCase())
+            User user = fileStorageService.findUserByEmail(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 
             return org.springframework.security.core.userdetails.User
@@ -45,11 +45,11 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler roleBasedAuthenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            boolean isStaff = authentication.getAuthorities().stream()
-                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_STAFF"));
+            boolean isRestaurant = authentication.getAuthorities().stream()
+                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_RESTAURANT"));
 
-            if (isStaff) {
-                response.sendRedirect("/staff/dashboard");
+            if (isRestaurant) {
+                response.sendRedirect("/restaurant/dashboard");
             } else {
                 response.sendRedirect("/customer/dashboard");
             }
@@ -65,6 +65,7 @@ public class SecurityConfig {
                     "/register",
                     "/login",
                     "/menu/**",
+                    "/restaurants/**",
                     "/css/**",
                     "/js/**",
                     "/images/**"
@@ -76,8 +77,8 @@ public class SecurityConfig {
                     "/orders/**"
                 ).hasRole("CUSTOMER")
                 .requestMatchers(
-                    "/staff/**"
-                ).hasRole("STAFF")
+                    "/restaurant/**"
+                ).hasRole("RESTAURANT")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${restaurant.restaurantName + ' - Menu | Brunch'}">Restaurant Menu - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="restaurant-banner">
+    <div class="container">
+        <a th:href="@{/restaurants}" class="back-link">&larr; Back to all restaurants</a>
+        <div class="rest-banner-content">
+            <span class="rest-banner-badge" th:text="${restaurant.city}">City</span>
+            <h1 class="rest-banner-title" th:text="${restaurant.restaurantName}">Restaurant Name</h1>
+            <p class="rest-banner-desc" th:text="${restaurant.description}">Description</p>
+            <div class="rest-banner-meta">
+                <span>📍 <strong th:text="${restaurant.address}">Address</strong></span>
+                <span>🕒 Hours: <strong th:text="${restaurant.openingTime + ' - ' + restaurant.closingTime}">Hours</strong></span>
+                <span>📞 Contact: <strong th:text="${restaurant.phone}">Phone</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="container">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <section class="section">
+        <div class="section-header-row">
+            <h2 class="section-heading">Restaurant Menu</h2>
+            <span class="count-badge" th:text="${menuItems.size() + ' items available'}">Items</span>
+        </div>
+
+        <div th:if="${menuItems == null or menuItems.isEmpty()}" class="empty-state">
+            <span class="empty-icon">🍳</span>
+            <h3>No menu items available right now</h3>
+            <p>Check back later or explore other restaurants.</p>
+            <a th:href="@{/restaurants}" class="btn btn-primary">Browse Other Restaurants</a>
+        </div>
+
+        <div class="menu-grid" th:if="${menuItems != null and !menuItems.isEmpty()}">
+            <div th:each="item : ${menuItems}">
+                <div th:replace="~{fragments/menu-card :: menuCard(${item})}"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

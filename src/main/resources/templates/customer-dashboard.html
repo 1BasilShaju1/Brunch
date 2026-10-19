@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="dashboard-header">
+        <h1>Welcome, <span th:text="${customer.fullName}">Customer</span>!</h1>
+        <p>Manage your orders, view your cart, or explore new delicacies.</p>
+    </div>
+
+    <div class="dashboard-actions">
+        <a th:href="@{/menu}" class="dashboard-card">
+            <span class="icon">📖</span>
+            <h3>Browse Menu</h3>
+            <p>Explore today's freshly prepared dishes</p>
+        </a>
+        <a th:href="@{/cart}" class="dashboard-card">
+            <span class="icon">🛒</span>
+            <h3>My Cart</h3>
+            <p>Review items in your cart and proceed to checkout</p>
+        </a>
+        <a th:href="@{/orders}" class="dashboard-card">
+            <span class="icon">📦</span>
+            <h3>My Orders</h3>
+            <p>Track live delivery status &amp; view receipts</p>
+        </a>
+    </div>
+
+    <section class="section">
+        <h2>Recent Orders</h2>
+        <div th:if="${#lists.isEmpty(recentOrders)}" class="empty-state">
+            <p>You have not placed any orders yet.</p>
+            <a th:href="@{/menu}" class="btn btn-primary">Order Food Now</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(recentOrders)}" class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${recentOrders}">
+                    <td th:text="'#' + ${order.id}">#1</td>
+                    <td th:text="${#temporals.format(order.orderDate, 'dd-MMM-yyyy HH:mm')}">Date</td>
+                    <td th:text="${order.orderType}">Delivery</td>
+                    <td>₹<span th:text="${#numbers.formatDecimal(order.finalAmount, 1, 2)}">0.00</span></td>
+                    <td>
+                        <div th:replace="~{fragments/order-status :: orderStatus(${order.orderStatus})}"></div>
+                    </td>
+                    <td>
+                        <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline">View Receipt</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

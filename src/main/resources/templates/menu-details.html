@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${item.name} + ' - Brunch'">Item Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="card details-card">
+        <div class="details-header">
+            <span class="category-pill" th:text="${item.category}">Category</span>
+            <span class="badge" th:classappend="${item.availability == 'Available' ? 'badge-success' : 'badge-danger'}" 
+                  th:text="${item.availability}">Available</span>
+        </div>
+        <h1 class="details-title" th:text="${item.name}">Dish Name</h1>
+        <p class="details-desc" th:text="${item.description}">Description</p>
+        <div class="details-price">₹<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</span></div>
+
+        <div class="details-action-box">
+            <th:block sec:authorize="hasRole('CUSTOMER')">
+                <form th:if="${item.availability == 'Available'}" th:action="@{/cart/add/{id}(id=${item.id})}" method="post" class="add-cart-form">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="50" class="form-control qty-input"/>
+                    <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+                </form>
+                <p th:unless="${item.availability == 'Available'}" class="alert alert-warning">This item is currently sold out.</p>
+            </th:block>
+
+            <th:block sec:authorize="isAnonymous()">
+                <p>Please <a th:href="@{/login}">log in as a customer</a> to add this item to your cart.</p>
+            </th:block>
+
+            <th:block sec:authorize="hasRole('STAFF')">
+                <p class="alert alert-info">Staff accounts cannot place customer orders. Manage this item from the Staff Menu.</p>
+            </th:block>
+        </div>
+
+        <p><a th:href="@{/menu}" class="link-back">&larr; Back to Menu</a></p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

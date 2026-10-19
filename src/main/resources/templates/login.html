@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="auth-wrapper">
+    <div class="card auth-card">
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-sub">Log in with your customer or staff credentials</p>
+
+        <div th:if="${param.error}" class="alert alert-danger">Invalid email or password. Please try again.</div>
+        <div th:if="${param.logout}" class="alert alert-success">You have been logged out successfully.</div>
+        <div th:if="${param.registered}" class="alert alert-success">Registration successful! Please log in.</div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="user@brunch.com" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" required/>
+                    <button type="button" class="btn-toggle-pw" onclick="togglePasswordVisibility('password')">Show</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Log In</button>
+        </form>
+
+        <div class="credentials-box">
+            <h4>Sample Test Accounts:</h4>
+            <p><strong>Customer:</strong> customer@brunch.com | Customer@123</p>
+            <p><strong>Staff:</strong> staff@brunch.com | Staff@123</p>
+        </div>
+
+        <p class="auth-footer">New to Brunch? <a th:href="@{/register}">Create an account</a></p>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

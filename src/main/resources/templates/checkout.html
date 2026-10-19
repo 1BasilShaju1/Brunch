@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <h1>Finalize Your Order</h1>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="checkout-layout">
+        <div class="checkout-form-panel">
+            <div class="card">
+                <form th:action="@{/checkout}" th:object="${checkoutForm}" method="post">
+                    <h3>1. Delivery Preferences</h3>
+                    <div class="form-group">
+                        <label>Order Type</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{orderType}" value="Delivery" id="typeDelivery" onchange="toggleAddressField()"/>
+                                Delivery (₹30 Fee)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{orderType}" value="Pickup" id="typePickup" onchange="toggleAddressField()"/>
+                                Pickup (Free)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="deliveryAddressGroup">
+                        <label for="deliveryAddress">Delivery Address <span class="required">*</span></label>
+                        <textarea id="deliveryAddress" th:field="*{deliveryAddress}" class="form-control" rows="3" placeholder="Full street address, flat/door number, landmark"></textarea>
+                        <span class="field-error" th:if="${#fields.hasErrors('deliveryAddress')}" th:errors="*{deliveryAddress}"></span>
+                    </div>
+
+                    <h3>2. Payment Method</h3>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{paymentMethod}" value="Cash on Delivery"/>
+                                Cash on Delivery
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{paymentMethod}" value="UPI"/>
+                                UPI (Simulated)
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Place Order</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="checkout-summary-panel">
+            <div class="card">
+                <h3>Order Review</h3>
+                <div class="checkout-item-list">
+                    <div th:each="item : ${cart.items}" class="checkout-item-row">
+                        <span th:text="${item.quantity} + 'x ' + ${item.menuItem.name}">1x Dish</span>
+                        <span>₹<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></span>
+                    </div>
+                </div>
+                <hr/>
+                <div class="summary-line">
+                    <span>Items Subtotal:</span>
+                    <span>₹<span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}">0.00</span></span>
+                </div>
+                <div class="summary-line">
+                    <span>Delivery Fee:</span>
+                    <span id="summaryDeliveryFee">₹30.00</span>
+                </div>
+                <hr/>
+                <div class="summary-line total-line">
+                    <span>Final Amount:</span>
+                    <span id="summaryFinalAmount" th:data-subtotal="${subtotal}">
+                        ₹<span th:text="${#numbers.formatDecimal(subtotal + 30.0, 1, 2)}">0.00</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

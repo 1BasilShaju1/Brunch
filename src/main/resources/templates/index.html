@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brunch - Food Delivery Platform</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<header class="hero">
+    <div class="hero-content">
+        <h1>Delicious Food Delivered Fresh &amp; Fast</h1>
+        <p>From warm morning breakfasts to gourmet dinners, Brunch satisfies every craving.</p>
+        <div class="hero-buttons">
+            <a th:href="@{/menu}" class="btn btn-primary btn-lg">Browse Menu</a>
+            <a th:href="@{/register}" class="btn btn-secondary btn-lg">Join as Customer</a>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="section">
+        <h2 class="section-heading">Browse by Category</h2>
+        <div class="category-grid">
+            <a th:href="@{/menu/category/Breakfast}" class="category-box">
+                <span class="cat-icon">🥞</span>
+                <h4>Breakfast</h4>
+            </a>
+            <a th:href="@{/menu/category/Main Course}" class="category-box">
+                <span class="cat-icon">🍛</span>
+                <h4>Main Course</h4>
+            </a>
+            <a th:href="@{/menu/category/Snacks}" class="category-box">
+                <span class="cat-icon">🥪</span>
+                <h4>Snacks</h4>
+            </a>
+            <a th:href="@{/menu/category/Drinks}" class="category-box">
+                <span class="cat-icon">🥤</span>
+                <h4>Drinks</h4>
+            </a>
+            <a th:href="@{/menu/category/Desserts}" class="category-box">
+                <span class="cat-icon">🍰</span>
+                <h4>Desserts</h4>
+            </a>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-header-row">
+            <h2 class="section-heading">Popular Items</h2>
+            <a th:href="@{/menu}" class="link-more">View Full Menu &rarr;</a>
+        </div>
+        <div class="menu-grid">
+            <div th:each="item : ${popularItems}">
+                <div th:replace="~{fragments/menu-card :: menuCard(${item})}"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

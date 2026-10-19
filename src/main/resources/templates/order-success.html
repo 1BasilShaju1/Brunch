@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="card confirmation-card">
+        <div class="success-icon">🎉</div>
+        <h1>Order Confirmed!</h1>
+        <p class="confirmation-subtitle">Thank you for ordering with Brunch. Your kitchen is preparing your feast.</p>
+
+        <div class="order-id-badge">
+            Order Reference: <strong th:text="'#' + ${order.id}">#1001</strong>
+        </div>
+
+        <div class="receipt-box">
+            <h3>Order Details</h3>
+            <p><strong>Status:</strong> <span th:replace="~{fragments/order-status :: orderStatus(${order.orderStatus})}"></span></p>
+            <p><strong>Order Type:</strong> <span th:text="${order.orderType}">Delivery</span></p>
+            <p><strong>Payment Method:</strong> <span th:text="${order.paymentMethod}">Cash on Delivery</span></p>
+            <p><strong>Address:</strong> <span th:text="${order.deliveryAddress}">Address</span></p>
+            <p><strong>Date &amp; Time:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd-MMM-yyyy HH:mm')}">Date</span></p>
+
+            <table class="table receipt-table">
+                <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${order.items}">
+                    <td th:text="${item.itemName}">Item</td>
+                    <td th:text="${item.quantity}">1</td>
+                    <td>₹<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 2)}">0.00</span></td>
+                    <td>₹<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)}">0.00</span></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="summary-line">
+                <span>Items Subtotal:</span>
+                <span>₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></span>
+            </div>
+            <div class="summary-line">
+                <span>Delivery Fee:</span>
+                <span>₹<span th:text="${#numbers.formatDecimal(order.deliveryFee, 1, 2)}">0.00</span></span>
+            </div>
+            <div class="summary-line total-line">
+                <span>Total Amount Paid:</span>
+                <span>₹<span th:text="${#numbers.formatDecimal(order.finalAmount, 1, 2)}">0.00</span></span>
+            </div>
+        </div>
+
+        <div class="confirmation-actions">
+            <a th:href="@{/orders}" class="btn btn-primary btn-lg">View My Orders</a>
+            <a th:href="@{/menu}" class="btn btn-outline btn-lg">Continue Browsing</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

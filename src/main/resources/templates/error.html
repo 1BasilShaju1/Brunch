@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Brunch</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="container">
+    <div class="card empty-state" style="margin-top: 50px;">
+        <span style="font-size: 3rem;">⚠️</span>
+        <h2>Oops! Something went wrong</h2>
+        <p class="muted" th:text="${errorMessage != null ? errorMessage : 'The requested resource could not be found or processed.'}">Error description</p>
+        <div style="margin-top: 20px;">
+            <a th:href="@{/}" class="btn btn-primary">Return to Homepage</a>
+            <a th:href="@{/menu}" class="btn btn-outline">Browse Menu</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<span th:fragment="orderStatus(status)" class="badge"
+      th:classappend="${
+          status == 'PENDING' ? 'badge-warning' :
+          status == 'ACCEPTED' ? 'badge-info' :
+          status == 'PREPARING' ? 'badge-primary' :
+          status == 'READY_FOR_PICKUP' ? 'badge-accent' :
+          status == 'OUT_FOR_DELIVERY' ? 'badge-info' :
+          status == 'DELIVERED' ? 'badge-success' : 'badge-danger'
+      }"
+      th:text="${status}">PENDING</span>
+</body>
+</html>

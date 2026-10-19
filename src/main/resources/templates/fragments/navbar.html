@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+</head>
+<body>
+<nav class="navbar" th:fragment="navbar">
+    <div class="nav-container">
+        <a class="nav-logo" th:href="@{/}">
+            <span>🍳</span> BRUNCH
+        </a>
+        <div class="nav-links">
+            <a th:href="@{/}" class="nav-item">Home</a>
+            <a th:href="@{/menu}" class="nav-item">Menu</a>
+
+            <!-- Customer links -->
+            <th:block sec:authorize="hasRole('CUSTOMER')">
+                <a th:href="@{/customer/dashboard}" class="nav-item">Dashboard</a>
+                <a th:href="@{/cart}" class="nav-item">Cart</a>
+                <a th:href="@{/orders}" class="nav-item">My Orders</a>
+            </th:block>
+
+            <!-- Staff links -->
+            <th:block sec:authorize="hasRole('STAFF')">
+                <a th:href="@{/staff/dashboard}" class="nav-item">Staff Panel</a>
+                <a th:href="@{/staff/menu}" class="nav-item">Manage Menu</a>
+                <a th:href="@{/staff/orders}" class="nav-item">All Orders</a>
+            </th:block>
+
+            <!-- Anonymous Users -->
+            <th:block sec:authorize="isAnonymous()">
+                <a th:href="@{/login}" class="btn btn-outline">Log In</a>
+                <a th:href="@{/register}" class="btn btn-primary">Register</a>
+            </th:block>
+
+            <!-- Authenticated Users -->
+            <th:block sec:authorize="isAuthenticated()">
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline btn-logout">Logout</button>
+                </form>
+            </th:block>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

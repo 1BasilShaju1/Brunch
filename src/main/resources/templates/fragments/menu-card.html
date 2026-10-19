@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+</head>
+<body>
+<div class="menu-card" th:fragment="menuCard(item)">
+    <div class="menu-card-header">
+        <span class="category-pill" th:text="${item.category}">Category</span>
+        <span class="badge" th:classappend="${item.availability == 'Available' ? 'badge-success' : 'badge-danger'}" 
+              th:text="${item.availability}">Available</span>
+    </div>
+    <h3 class="menu-card-title">
+        <a th:href="@{/menu/{id}(id=${item.id})}" th:text="${item.name}">Dish Name</a>
+    </h3>
+    <p class="menu-card-desc" th:text="${item.description}">Detailed item description...</p>
+    <div class="menu-card-footer">
+        <div class="price-tag">₹<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}">0.00</span></div>
+        <div class="menu-card-actions">
+            <a th:href="@{/menu/{id}(id=${item.id})}" class="btn btn-sm btn-outline">Details</a>
+            <th:block sec:authorize="hasRole('CUSTOMER')">
+                <form th:if="${item.availability == 'Available'}" th:action="@{/cart/add/{id}(id=${item.id})}" method="post" style="display:inline;">
+                    <input type="hidden" name="quantity" value="1"/>
+                    <button type="submit" class="btn btn-sm btn-primary">+ Cart</button>
+                </form>
+            </th:block>
+            <th:block sec:authorize="isAnonymous()">
+                <a th:if="${item.availability == 'Available'}" th:href="@{/login}" class="btn btn-sm btn-primary">+ Cart</a>
+            </th:block>
+        </div>
+    </div>
+</div>
+</body>
+</html>
